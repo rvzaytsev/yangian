@@ -6,7 +6,7 @@ EMPTY = tuple()
 
 # These are technical parameters which set up the context
 FAST = False
-ALGEBRA = 'C^N'
+ALGEBRA = 'free'  # C^N or free
 
 
 # arithmetic
@@ -132,7 +132,7 @@ def ij_kl_to_4(formula):
     phis = []
     psis = [transpose(formula)]
     for z1, z2, val in formula:
-        phi, psi = commute(z1, z2, 3)
+        phi, psi = commute(z1, z2, 4)
         phis.append(multiply(phi, val))
         psis.append(multiply(psi, val))
     phi_new = add(*phis)
@@ -237,6 +237,13 @@ def commute(w, w_tilde, index):
     return convert(phi3_new, psi3_new, phi4_new, psi4_new, index)
 
 
+def free_algebra_commute(n, m, index):
+    assert ALGEBRA == 'free'
+    w = tuple(map(str, range(1, n + 1)))
+    w_tilde = tuple(map(str, range(n + 1, n + 1 + m)))
+    return commute(w, w_tilde, index)
+
+
 def pretty_print(formula):
     formula_list = []
     # formula.sort(key=lambda item: (-len(item[0]) - len(item[1]), -item[2]))
@@ -246,9 +253,22 @@ def pretty_print(formula):
     print(tabulate(formula_list, headers=['w', 'w_tilde', 'coef']))
 
 
-def pretty_print_formulas(w, w_tilde):
-    phi, psi = commute(w, w_tilde, 1)
+def pretty_print_formulas(w, w_tilde, index):
+    phi, psi = commute(w, w_tilde, index)
     print("φ part")
     pretty_print(phi)
     print('\nψ part')
     pretty_print(psi)
+
+
+def free_algebra_io():
+    assert ALGEBRA == 'free'
+    index = int(input('Enter which formula to compute (1-4):'))
+    n = int(input('Enter the number of variables for w:'))
+    m = int(input('Enter the number of variables for w_tilde:'))
+
+    w = tuple(map(str, range(1, n + 1)))
+    w_tilde = tuple(map(str, range(n + 1, n + 1 + m)))
+    print(f'w={w}')
+    print(f'w_tilde={w_tilde}.')
+    pretty_print_formulas(w, w_tilde, index)
