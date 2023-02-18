@@ -18,3 +18,4 @@ def check_coefs(n, m):
                 phi_coefs = [item[2] for item in phi]
                 psi_coefs = [item[2] for item in psi]
                 assert (set(phi_coefs) | set(psi_coefs)).issubset({-1,1})
+

@@ -1,14 +1,15 @@
 from itertools import chain
 from collections import defaultdict
 from tabulate import tabulate
+import string
 
 EMPTY = tuple()
 
 # These are technical parameters which set up the context
-FAST = False
-ALGEBRA = 'free'  # C^N or free
-
-
+FAST = True
+ALGEBRA = 'commutative'  # C^N or free
+CACHE = {} # for free algebra it is very easy: we store the map (n, m, i) -> formula_i([1,2,...,n], [n+1,...,n+1+m])
+ALPHABET = string.printable
 # arithmetic
 
 # negates the coefficients
@@ -166,6 +167,28 @@ def convert(phi3, psi3, phi4, psi4, index):
     psi = add(psi_from_phi3, psi_from_phi4, psi_from_psi3, psi_from_psi4)
     return phi, psi
 
+def apply_mapping(z, mapping):
+    word = []
+    for x in z:
+        y = ""
+        for c in x:
+            y += mapping[c]
+        if ALGEBRA == 'commutative':
+            word.append(''.join(sorted(y)))
+        else:
+            word.append(y)
+    return tuple(word)
+def substitute(w, w_tilde, formula):
+    merged = w + w_tilde
+    mapping = {}
+    for u in range(len(merged)):
+        mapping[ALPHABET[u]] = merged[u]
+    substituted_formula = []
+    for z1, z2, val in formula:
+        w1 = apply_mapping(z1, mapping)
+        w2 = apply_mapping(z2, mapping)
+        substituted_formula.append((w1, w2, val))
+    return substituted_formula
 
 def commute(w, w_tilde, index):
     """
@@ -177,6 +200,18 @@ def commute(w, w_tilde, index):
     phi, psi - dictionaries (z1, z2) -> int
     where z1 and z2 are tuples of algebra elements
     """
+    # do lazy caching
+    if (ALGEBRA == 'free' or ALGEBRA == 'commutative') and ((len(w), len(w_tilde), index) not in CACHE):
+        n, m = len(w), len(w_tilde)
+        w_canonical, w_tilde_canonical = canonical_words(n, m)
+        if w != w_canonical or w_tilde != w_tilde_canonical:
+            CACHE[(n, m, index)] = commute(w_canonical, w_tilde_canonical, index)
+
+    # check if we have an answer in cache
+    if (ALGEBRA == 'free' or ALGEBRA == 'commutative') and (len(w), len(w_tilde), index) in CACHE:
+        phi, psi = CACHE[(len(w), len(w_tilde), index)]
+        return substitute(w, w_tilde, phi), substitute(w, w_tilde, psi)
+    # do honest computation, assuming w and w_tilde are just increasing nums
 
     # trivial commutator
     if len(w) == 0 or len(w_tilde) == 0:
@@ -202,16 +237,18 @@ def commute(w, w_tilde, index):
                 return [(ba, EMPTY, -1), (EMPTY, ab, 1)], []
             elif index == 3 or index == 4:
                 return [(ab, EMPTY, 1), (EMPTY, ba, -1)], []
+        elif ALGEBRA == 'commutative':
+            a, b = w[0], w_tilde[0]
+            ab = (''.join(sorted(a + b)),)
+            ba = (''.join(sorted(b + a)),)
+            if index == 1 or index == 2:
+                return [(ba, EMPTY, -1), (EMPTY, ab, 1)], []
+            elif index == 3 or index == 4:
+                return [(ab, EMPTY, 1), (EMPTY, ba, -1)], []
         else:
+            print(ALGEBRA, 'commutative', ALGEBRA=='commutative')
             raise Exception(f"Algebra {ALGEBRA} not implemented. Choose C^N or free")
         # COMMUTATIVE CASE
-        # a, b = w[0], w_tilde[0]
-        # ab = ({a,b},)
-        # ba = ({a,b},)
-        # if index == 1 or index == 2:
-        #     return [(ba, EMPTY, -1), (EMPTY, ab, 1)], []
-        # elif index == 3 or index == 4:
-        #     return [(ab, EMPTY, 1), (EMPTY, ba, -1)], []
 
     # due to symmetry we can exclude the case that w has length 1
     if len(w) < len(w_tilde):
@@ -236,11 +273,13 @@ def commute(w, w_tilde, index):
 
     return convert(phi3_new, psi3_new, phi4_new, psi4_new, index)
 
-
+def canonical_words(n, m):
+    w = tuple(c for c in ALPHABET[:n])
+    w_tilde = tuple(c for c in ALPHABET[n:n+m])
+    return w, w_tilde
 def free_algebra_commute(n, m, index):
-    assert ALGEBRA == 'free'
-    w = tuple(map(str, range(1, n + 1)))
-    w_tilde = tuple(map(str, range(n + 1, n + 1 + m)))
+    assert ALGEBRA == 'free' or ALGEBRA == 'commutative'
+    w, w_tilde = canonical_words(n, m)
     return commute(w, w_tilde, index)
 
 
@@ -262,13 +301,11 @@ def pretty_print_formulas(w, w_tilde, index):
 
 
 def free_algebra_io():
-    assert ALGEBRA == 'free'
+    assert ALGEBRA == 'free' or ALGEBRA == 'commutative'
     index = int(input('Enter which formula to compute (1-4):'))
     n = int(input('Enter the number of variables for w:'))
     m = int(input('Enter the number of variables for w_tilde:'))
-
-    w = tuple(map(str, range(1, n + 1)))
-    w_tilde = tuple(map(str, range(n + 1, n + 1 + m)))
+    w, w_tilde = canonical_words(n, m)
     print(f'w={w}')
     print(f'w_tilde={w_tilde}.')
     pretty_print_formulas(w, w_tilde, index)
