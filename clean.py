@@ -7,7 +7,7 @@ EMPTY = tuple()
 
 # These are technical parameters which set up the context
 FAST = True
-ALGEBRA = 'free'  # C^N or free
+ALGEBRA = 'free'  # C^N or free or commutative
 CACHE = {} # for free algebra it is very easy: we store the map (n, m, i) -> formula_i([1,2,...,n], [n+1,...,n+1+m])
 ALPHABET = string.printable
 # arithmetic

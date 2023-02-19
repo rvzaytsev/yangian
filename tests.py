@@ -1,5 +1,5 @@
 from itertools import product, permutations
-from clean import commute, free_algebra_commute
+from clean import commute, free_algebra_commute, substitute
 from clean_copy import commute as commute_copy, free_algebra_commute as free_algebra_commute_copy
 from misha import Formula_I, Formula_II, Formula_III, Formula_IV
 from clean import ALGEBRA as CLEAN_ALGEBRA, canonical_words, pretty_print
@@ -88,7 +88,6 @@ def sort_letters(w):
 def free_to_commutative(formula):
     dict_form = defaultdict(int)
     for w1, w2, val in formula:
-
         dict_form[(sort_letters(w1), sort_letters(w2))] += val
     result = []
     for (w1, w2), val in dict_form.items():
@@ -102,8 +101,50 @@ def free_algebra_reduce_to_commutative_test(n, m):
         phi_free, psi_free = free_algebra_commute(n, m, i)
         phi_com, psi_com = free_algebra_commute_copy(n, m, i)
         phi_reduced, psi_reduced = free_to_commutative(phi_free), free_to_commutative(psi_free)
+        if sort_formulas(phi_reduced, psi_reduced) != sort_formulas(phi_com, psi_com):
+            pretty_print(phi_free)
+            pretty_print(phi_reduced)
+            pretty_print(phi_com)
+            return
 
-def free_algebra_reduce_to_product_test(n, m):
+def reduce_free_var_to_c(v):
+    if len(set(v)) <= 1:
+        return '' if len(v) == 0 else v[0]
+    return 0
+def reduce_word_to_c(w):
+    c_word = []
+    for v in w:
+        c = reduce_free_var_to_c(v)
+        if c == 0:
+            return 0
+        c_word.append(c)
+    return tuple(c_word)
+def free_reduce_to_c(formula, w, w_tilde):
+    formula = substitute(w, w_tilde, formula)
+    dict_form = defaultdict(int)
+    for w1, w2, val in formula:
+        z1 = reduce_word_to_c(w1)
+        z2 = reduce_word_to_c(w2)
+        if z1 == 0 or z2 == 0:
+            continue
+        dict_form[(z1, z2)] += val
+    result = []
+    for (w1, w2), val in dict_form.items():
+        if val != 0:
+            result.append((w1, w2, val))
+    return result
+def free_algebra_reduce_to_c_test(w, w_tilde):
     assert CLEAN_ALGEBRA == 'free' and COPY_ALGEBRA == 'C^N'
+    for i in range(1, 5):
+        phi_free, psi_free = free_algebra_commute(len(w), len(w_tilde), i)
+        phi_c, psi_c = commute_copy(w, w_tilde, i)
+        phi_reduced, psi_reduced = free_reduce_to_c(phi_free, w, w_tilde),\
+            free_reduce_to_c(psi_free, w, w_tilde)
+        if sort_formulas(phi_reduced, psi_reduced) != sort_formulas(phi_c, psi_c):
+            print('NOT EQUAL!!')
+            pretty_print(phi_free)
+            pretty_print(phi_reduced)
+            pretty_print(phi_c)
+            return
 
 
