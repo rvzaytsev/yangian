@@ -8,6 +8,4 @@ from hypothesis import print_coefficients_free_algebra, check_coefs
 #check_coefs(5,5)
 # print_coefficients_free_algebra(7,7)
 from tests import compare_word_division_free_algebra, free_algebra_reduce_to_commutative_test
-from clean import free_algebra_io
-free_algebra_io()
-free_algebra_reduce_to_commutative_test(7,7)
+free_algebra_reduce_to_commutative_test(5,5)

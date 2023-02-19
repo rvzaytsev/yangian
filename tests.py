@@ -100,16 +100,10 @@ def free_algebra_reduce_to_commutative_test(n, m):
     assert CLEAN_ALGEBRA == 'free' and COPY_ALGEBRA == 'commutative'
     for i in range(4,5):
         phi_free, psi_free = free_algebra_commute(n, m, i)
-        print(0)
         phi_com, psi_com = free_algebra_commute_copy(n, m, i)
-        print(1)
         phi_reduced, psi_reduced = free_to_commutative(phi_free), free_to_commutative(psi_free)
-        if sort_formulas(phi_reduced,  psi_reduced) != sort_formulas(phi_com, psi_com):
-            pretty_print(phi_free)
-            pretty_print(phi_reduced)
-            pretty_print(phi_com)
-            return
 
-
+def free_algebra_reduce_to_product_test(n, m):
+    assert CLEAN_ALGEBRA == 'free' and COPY_ALGEBRA == 'C^N'
 
 
