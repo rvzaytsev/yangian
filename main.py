@@ -1,19 +1,21 @@
-# from hypothesis import find_good_linear_combinations
-# combs, m = find_good_linear_combinations(3,6)
-# print('Minimum found is', m)
-# for comb in combs:
-#     w1s, w2s, signs = comb
-#     print(';'.join(w1s[0])+'_'+';'.join(w2s[0]), end='')
-#     for j, charsign in enumerate(signs):
-#         print(charsign+';'.join(w1s[j+1])+'_'+';'.join(w2s[j+1]), end='')
-#     print()
-from clean import free_algebra_io
-free_algebra_io()
+# from clean import free_algebra_commute, pretty_print
+# phi, psi = free_algebra_commute(3, 3, 1)
+# pretty_print(psi)
+#
 
-from double_bracket_tests import compare_iterations
-import double_bracket
-double_bracket.print_tensor(
-    double_bracket.compute_iterations(double_bracket.canonical_tensor(3,1))[1])
+# import double_bracket
+# t=double_bracket.canonical_tensor(3,1)
+# for t in double_bracket.compute_iterations(t):
+#     double_bracket.print_tensor(t)
+
+from double_bracket import compute_and_print_expression_of_commutator_via_double_brackets
+compute_and_print_expression_of_commutator_via_double_brackets(6,6)
+
+# from clean import free_algebra_io
+# free_algebra_io()
+
+# double_bracket.print_tensor(
+#     double_bracket.compute_iterations(double_bracket.canonical_tensor(3,1))[1])
 # t = [(['1', '2', '1'], ['2','1', '2'], 1)]
 # double_bracket.print_tensor(t)
 # for i, s in enumerate(double_bracket.compute_iterations(t)):
