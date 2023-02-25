@@ -246,8 +246,7 @@ def commute(w, w_tilde, index):
             elif index == 3 or index == 4:
                 return [(ab, EMPTY, 1), (EMPTY, ba, -1)], []
         else:
-            print(ALGEBRA, 'commutative', ALGEBRA=='commutative')
-            raise Exception(f"Algebra {ALGEBRA} not implemented. Choose C^N or free")
+            raise Exception(f"Algebra {ALGEBRA} not implemented. Choose C^N or free or commutative")
         # COMMUTATIVE CASE
 
     # due to symmetry we can exclude the case that w has length 1
@@ -302,6 +301,7 @@ def pretty_print_formulas(w, w_tilde, index):
 
 def free_algebra_io():
     assert ALGEBRA == 'free' or ALGEBRA == 'commutative'
+    print(f'Computining in {ALGEBRA} algebra')
     index = int(input('Enter which formula to compute (1-4):'))
     n = int(input('Enter the number of variables for w:'))
     m = int(input('Enter the number of variables for w_tilde:'))
@@ -309,3 +309,13 @@ def free_algebra_io():
     print(f'w={w}')
     print(f'w_tilde={w_tilde}.')
     pretty_print_formulas(w, w_tilde, index)
+
+def c_io():
+    assert ALGEBRA == 'C^N'
+    index = int(input('Enter which formula to compute (1-4):'))
+    print('Use the following format: numbers (algebra vars) separated by semi-colons ("train")')
+    print('For example: 1;2;1')
+    w = tuple(input("Enter w: ").split(';'))
+    w_tilde = tuple(input("Enter w_tilde: ").split(';'))
+    print(f'w={w}', f'w_tilde={w_tilde}')
+    pretty_print_formulas(w, w_tilde, )

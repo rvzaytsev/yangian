@@ -1,18 +1,35 @@
-from clean import pretty_print_formulas
-from tests import free_algebra_reduce_to_c_test
-# print('Use the following format: numbers (free algebra vars) separated by semi-colons ("train")')
-# print('For example: 1;2;1')
-# w = tuple(input("Enter w: ").split(';'))
-# w_tilde = tuple(input("Enter w_tilde: ").split(';'))
-from itertools import product
-m=4
-n=4
-for w in product(('1', '2'), repeat=m):
-    for w_tilde in product(('1', '2'), repeat=n):
-        free_algebra_reduce_to_c_test(w, w_tilde)
-from hypothesis import print_coefficients_free_algebra, check_coefs
-#print_coefficients_free_algebra(5,5)
-#check_coefs(5,5)
-# print_coefficients_free_algebra(7,7)
-# from tests import compare_word_division_free_algebra, free_algebra_reduce_to_commutative_test
-# free_algebra_reduce_to_commutative_test(5,5)
+# from hypothesis import find_good_linear_combinations
+# combs, m = find_good_linear_combinations(3,6)
+# print('Minimum found is', m)
+# for comb in combs:
+#     w1s, w2s, signs = comb
+#     print(';'.join(w1s[0])+'_'+';'.join(w2s[0]), end='')
+#     for j, charsign in enumerate(signs):
+#         print(charsign+';'.join(w1s[j+1])+'_'+';'.join(w2s[j+1]), end='')
+#     print()
+from clean import free_algebra_io
+free_algebra_io()
+
+from double_bracket_tests import compare_iterations
+import double_bracket
+double_bracket.print_tensor(
+    double_bracket.compute_iterations(double_bracket.canonical_tensor(3,1))[1])
+# t = [(['1', '2', '1'], ['2','1', '2'], 1)]
+# double_bracket.print_tensor(t)
+# for i, s in enumerate(double_bracket.compute_iterations(t)):
+#     print('iteration n.', i+1)
+#     double_bracket.print_tensor(s)
+#     print("projection 0, -")
+#     double_bracket.print_tensor(double_bracket.project_first_component_zero_degree(s))
+#     print("projection -, 0")
+#     double_bracket.print_tensor(double_bracket.project_second_component_zero_degree(s))
+# for x in t:
+#     f=double_bracket.double_bracket_recursive([x])
+#     s=double_bracket.double_bracket([x])
+#     f.sort()
+#     s.sort()
+#     assert f == s
+# double_bracket.print_tensor(double_bracket.double_bracket_recursive(t))
+# double_bracket.print_tensor(double_bracket.double_bracket(t))
+
+# print_tensor(double_bracket(t))
