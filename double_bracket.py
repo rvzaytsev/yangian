@@ -2,6 +2,7 @@ from clean import ALGEBRA, canonical_words, free_algebra_commute
 from tabulate import tabulate
 from collections import defaultdict
 import numpy as np
+import scipy
 
 # we will represent elements of T(A)xT(A) similarly as lists of algebra elements, and each list has a coefficient
 def multiply(a, b):
@@ -110,6 +111,14 @@ def project_second_component_zero_degree(t):
             result.append((a, b, val))
     return result
 
+def project(t, p, q):
+    # projects to degree p first and degree q second
+    result = []
+    for a, b, val in t:
+        if len(a) == p and len(b) == q:
+            result.append((a, b, val))
+    return result
+
 def compute_brackets(n, m):
     t = canonical_tensor(n, m)
     all_iterations = [t] + compute_iterations(t)
@@ -123,6 +132,26 @@ def compute_brackets(n, m):
             brackets.append((f'Iteration {i}; projection 0,-', project_first_component_zero_degree(s)))
         if len(projection_second) > 0:
             brackets.append((f'Iteration {i}; -,0', project_second_component_zero_degree(s)))
+    return brackets
+
+def compute_brackets_and_all_projections(n, m):
+    t = canonical_tensor(n, m)
+    iterations = compute_iterations(t)
+    degree = n + m - 1
+    brackets = []
+    for i, s in enumerate(iterations):
+        if i == 0:
+            brackets.append((f'Iteration {1}', s))
+            degree -= 1
+            continue
+        #brackets.append((f'Iteration {i+1}', s))
+        for p in range(degree + 1):
+            q = degree - p
+            proj = project(s, p, q)
+            if len(proj) > 0:
+                brackets.append((f'Iteration {i + 1}, projection {p}, {q}', proj))
+
+        degree -= 1
     return brackets
 def print_tensor(t):
     string_form = [(';'.join(a), ';'.join(b), val) for a, b, val in t]
@@ -164,21 +193,55 @@ def express_formula(formula, brackets):
         if val != 0:
             terms.append((brackets[i][0], val))
     #print(solution, rounded_solution)
-    return terms, l2_error
+    return terms, l2_error, err
 
+# not debugged yet!
+# def express_formula_sparse(formula, brackets):
+#     basis2index = {}
+#     index = 0
+#     for z1, z2, val in formula:
+#         if (z1, z2) not in basis2index:
+#             basis2index[z1, z2] = index
+#             index += 1
+#     for name, bracket in brackets:
+#         for a, b, val in bracket:
+#             if (tuple(a), tuple(b)) not in basis2index:
+#                 basis2index[tuple(a), tuple(b)] = index
+#                 index += 1
+#     # now construct arrays
+#     formula_array = scipy.sparse.dok_array((len(basis2index),1), dtype='int')
+#     brackets_matrix = scipy.sparse.dok_array((len(basis2index), len(brackets)))
+#     for z1, z2, val in formula:
+#         formula_array[basis2index[z1, z2], 0] = val
+#     formula_array = formula_array.tocsr()
+#     brackets_matrix = brackets_matrix.tocsr()
+#     for i, (name, bracket) in enumerate(brackets):
+#         for a, b, val in bracket:
+#             brackets_matrix[basis2index[tuple(a), tuple(b)], i] = val
+#     solution= scipy.sparse.linalg.spsolve(brackets_matrix, formula_array)
+#     err = np.sum((brackets_matrix @ solution - formula_array)**2)
+#     solution = solution.todense()
+#     rounded_solution = np.clip(solution, -1, 1).round().astype('int')
+#     #l2_error = np.sum((brackets_matrix @ rounded_solution - formula_array) ** 2)
+#     terms = []
+#     for i, val in enumerate(rounded_solution):
+#         if val != 0:
+#             terms.append((brackets[i][0], val))
+#     #print(solution, rounded_solution)
+#     return terms, err#l2_error
 
 def express_through_double_brackets(n, m):
     phi, psi = free_algebra_commute(n, m, 1)
-    brackets = compute_brackets(n, m)
-    expressed_phi, err_phi = express_formula(phi, brackets)
-    expressed_psi, err_psi = express_formula(psi, brackets)
-    return expressed_phi, expressed_psi, err_phi + err_psi
+    brackets = compute_brackets_and_all_projections(n, m)
+    expressed_phi, err_phi, linear_err_phi = express_formula(phi, brackets)
+    expressed_psi, err_psi, linear_err_psi = express_formula(psi, brackets)
+    return expressed_phi, expressed_psi, err_phi + err_psi, round(linear_err_phi[0] + linear_err_psi[0])
 
 def compute_and_print_expression_of_commutator_via_double_brackets(n, m):
-    phi, psi, err = express_through_double_brackets(n,m)
+    phi, psi, round_err, err = express_through_double_brackets(n,m)
     phi.sort(key=lambda x:-x[1])
     psi.sort(key=lambda x:-x[1])
-    print("Error:", err)
+    print("Error (linear; rounding):", err, round_err)
     print('phi')
     for term, sign in phi:
         print('+' if sign == 1 else '-', term)

@@ -3,28 +3,29 @@
 # pretty_print(psi)
 #
 
-# import double_bracket
-# t=double_bracket.canonical_tensor(3,1)
-# for t in double_bracket.compute_iterations(t):
+import double_bracket
+#t=double_bracket.canonical_tensor(3,1)
+# for name, t in double_bracket.compute_brackets_and_all_projections(3,3):
+#     print(name)
 #     double_bracket.print_tensor(t)
 
-from double_bracket import compute_and_print_expression_of_commutator_via_double_brackets
-compute_and_print_expression_of_commutator_via_double_brackets(6,6)
+# from double_bracket import compute_and_print_expression_of_commutator_via_double_brackets
+# compute_and_print_expression_of_commutator_via_double_brackets(5,1)
 
 # from clean import free_algebra_io
 # free_algebra_io()
-
+#
 # double_bracket.print_tensor(
-#     double_bracket.compute_iterations(double_bracket.canonical_tensor(3,1))[1])
-# t = [(['1', '2', '1'], ['2','1', '2'], 1)]
-# double_bracket.print_tensor(t)
-# for i, s in enumerate(double_bracket.compute_iterations(t)):
-#     print('iteration n.', i+1)
-#     double_bracket.print_tensor(s)
-#     print("projection 0, -")
-#     double_bracket.print_tensor(double_bracket.project_first_component_zero_degree(s))
-#     print("projection -, 0")
-#     double_bracket.print_tensor(double_bracket.project_second_component_zero_degree(s))
+#     double_bracket.compute_iterations(double_bracket.canonical_tensor(4,2))[1])
+t = double_bracket.canonical_tensor(4,4)
+double_bracket.print_tensor(t)
+for i, s in enumerate(double_bracket.compute_iterations(t)):
+    print('iteration n.', i+1)
+    double_bracket.print_tensor(s)
+    # print("projection 0, -")
+    # double_bracket.print_tensor(double_bracket.project_first_component_zero_degree(s))
+    # print("projection -, 0")
+    # double_bracket.print_tensor(double_bracket.project_second_component_zero_degree(s))
 # for x in t:
 #     f=double_bracket.double_bracket_recursive([x])
 #     s=double_bracket.double_bracket([x])
