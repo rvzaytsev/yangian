@@ -230,17 +230,21 @@ def express_formula(formula, brackets):
 #     #print(solution, rounded_solution)
 #     return terms, err#l2_error
 
-def express_through_double_brackets(n, m):
+def express_through_double_brackets(n, m, all_projections=False):
     phi, psi = free_algebra_commute(n, m, 1)
-    brackets = compute_brackets_and_all_projections(n, m)
+    if all_projections:
+        brackets = compute_brackets_and_all_projections(n, m)
+    else:
+        brackets = compute_brackets(n, m)
     expressed_phi, err_phi, linear_err_phi = express_formula(phi, brackets)
     expressed_psi, err_psi, linear_err_psi = express_formula(psi, brackets)
     return expressed_phi, expressed_psi, err_phi + err_psi, round(linear_err_phi[0] + linear_err_psi[0])
 
-def compute_and_print_expression_of_commutator_via_double_brackets(n, m):
-    phi, psi, round_err, err = express_through_double_brackets(n,m)
+def compute_and_print_expression_of_commutator_via_double_brackets(n, m, all_projections=False):
+    phi, psi, round_err, err = express_through_double_brackets(n,m, all_projections)
     phi.sort(key=lambda x:-x[1])
     psi.sort(key=lambda x:-x[1])
+
     print("Error (linear; rounding):", err, round_err)
     print('phi')
     for term, sign in phi:
@@ -248,3 +252,18 @@ def compute_and_print_expression_of_commutator_via_double_brackets(n, m):
     print('psi')
     for term, sign in psi:
         print('+' if sign == 1 else '-', term)
+
+def express_commutator_via_double_brackets_io():
+    print(f'Computing in {ALGEBRA} algebra')
+    all_projections = input("Use all projections? (y/n):")
+    if all_projections == "y":
+        all_projections = True
+    else:
+        all_projections = False
+    n = int(input('Enter the number of variables for w:'))
+    m = int(input('Enter the number of variables for w_tilde:'))
+    t = canonical_tensor(n, m)
+    print("Computing commutator and iterations/projections of double bracket for")
+    print_tensor(t)
+    print("Result:")
+    compute_and_print_expression_of_commutator_via_double_brackets(n, m, all_projections)
