@@ -121,17 +121,17 @@ def project(t, p, q):
 
 def compute_brackets(n, m):
     t = canonical_tensor(n, m)
-    all_iterations = [t] + compute_iterations(t)
+    all_iterations = compute_iterations(t)
     brackets = []
     for i, s in enumerate(all_iterations):
         projection_first = project_first_component_zero_degree(s)
         projection_second = project_second_component_zero_degree(s)
         if len(projection_first) + len(projection_second) < len(s):
-            brackets.append((f'Iteration {i}', s))
+            brackets.append((f'Iteration {i+1}', s))
         if len(projection_first) > 0:
-            brackets.append((f'Iteration {i}; projection 0,-', project_first_component_zero_degree(s)))
+            brackets.append((f'Iteration {i+1}; projection 0,-', project_first_component_zero_degree(s)))
         if len(projection_second) > 0:
-            brackets.append((f'Iteration {i}; -,0', project_second_component_zero_degree(s)))
+            brackets.append((f'Iteration {i+1}; -,0', project_second_component_zero_degree(s)))
     return brackets
 
 def compute_brackets_and_all_projections(n, m):
@@ -267,3 +267,24 @@ def express_commutator_via_double_brackets_io():
     print_tensor(t)
     print("Result:")
     compute_and_print_expression_of_commutator_via_double_brackets(n, m, all_projections)
+
+def compute_brackets_io():
+    print(f'Computing in {ALGEBRA} algebra')
+    all_projections = input("Use all projections? (y/n):")
+    if all_projections == "y":
+        all_projections = True
+    else:
+        all_projections = False
+    n = int(input('Enter the number of variables for w:'))
+    m = int(input('Enter the number of variables for w_tilde:'))
+    t = canonical_tensor(n, m)
+    print("Computing iterations/projections of double bracket for")
+    print_tensor(t)
+    print("Result:")
+    if all_projections:
+        brackets = compute_brackets_and_all_projections(n, m)
+    else:
+        brackets = compute_brackets(n, m)
+    for name, s in brackets:
+        print(name)
+        print_tensor(s)
