@@ -8,8 +8,8 @@
 # for name, t in double_bracket.compute_brackets(2,1):
 #     print(name)
 #     double_bracket.print_tensor(t)
-# import double_bracket
-# double_bracket.compute_brackets_io()
+import double_bracket
+double_bracket.compute_brackets_io()
 # from double_bracket import compute_and_print_expression_of_commutator_via_double_brackets
 # compute_and_print_expression_of_commutator_via_double_brackets(3,5)
 # import double_bracket

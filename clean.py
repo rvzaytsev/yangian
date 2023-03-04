@@ -301,7 +301,7 @@ def pretty_print_formulas(w, w_tilde, index):
 
 def free_algebra_io():
     assert ALGEBRA == 'free' or ALGEBRA == 'commutative'
-    print(f'Computining in {ALGEBRA} algebra')
+    print(f'Computing in {ALGEBRA} algebra')
     index = int(input('Enter which formula to compute (1-4):'))
     n = int(input('Enter the number of variables for w:'))
     m = int(input('Enter the number of variables for w_tilde:'))
