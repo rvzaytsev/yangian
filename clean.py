@@ -318,4 +318,128 @@ def c_io():
     w = tuple(input("Enter w: ").split(';'))
     w_tilde = tuple(input("Enter w_tilde: ").split(';'))
     print(f'w={w}', f'w_tilde={w_tilde}')
-    pretty_print_formulas(w, w_tilde, )
+    print(f"index={1}")
+    pretty_print_formulas(w, w_tilde, 1)
+
+def project(formula, r, s):
+    projection = []
+    for z1, z2, val in formula:
+        if len(z1) == r and len(z2) == s:
+            projection.append((z1, z2, val))
+    return projection
+
+def project_total_degree(formula, degree):
+    projection = []
+    for z1, z2, val in formula:
+        if len(z1) + len(z2) == degree:
+            projection.append((z1, z2, val))
+    return projection
+
+def project_total_degree_io():
+    assert ALGEBRA == 'free' or ALGEBRA == 'commutative'
+    print(f'Computing in {ALGEBRA} algebra')
+    index = int(input('Enter which formula to compute (1-4):'))
+    n = int(input('Enter the number of variables for w:'))
+    m = int(input('Enter the number of variables for w_tilde:'))
+    d = int(input('Enter which degree to project to:'))
+    w, w_tilde = canonical_words(n, m)
+    print(f'w={w}')
+    print(f'w_tilde={w_tilde}.')
+    phi, psi = free_algebra_commute(n, m, index)
+    phi_proj, psi_proj = project_total_degree(phi, d), project_total_degree(psi, d)
+    print("φ part of degree", d)
+    pretty_print(phi_proj)
+    print('\nψ part of degree', d)
+    pretty_print(psi_proj)
+
+
+def free_algebra_projection(n, m, r=1, s=1, index=4):
+    assert ALGEBRA == 'commutative'
+    w, w_tilde = canonical_words(n, m)
+    print(f'w={w}', f'w_tilde={w_tilde}')
+    phi, psi = commute(w, w_tilde, index)
+    if (n + m - r - s) % 2:
+        formula, zero = phi, psi
+    else:
+        formula, zero = psi, phi
+    assert len(project(zero, r, s)) == 0
+    projection = project(formula, r, s)
+    print(len(projection))
+    pretty_print(projection)
+
+def nonzero_projections(n, m, index=4):
+    phi, psi = free_algebra_commute(n, m, index=4)
+    phi_proj = []
+    psi_proj = []
+    phi_degrees = set()
+    psi_degrees = set()
+    for r in range(n + m):
+        for s in range(n + m - r):
+            if len(project(phi, r, s)) > 0:
+                phi_proj.append((r, s))
+                phi_degrees.add(r + s)
+            if len(project(psi, r, s)) > 0:
+                psi_proj.append((r, s))
+                psi_degrees.add(r+ s)
+    return phi_proj, psi_proj, phi_degrees, psi_degrees
+
+def extract_subsequence(w, sequence):
+    subsequence = []
+    for letter in w:
+        for c in letter:
+            if c in sequence:
+                subsequence.append(c)
+    return subsequence
+
+def get_permutation(word, permuted):
+    permutation = [0]*len(word)
+    for i, c in enumerate(permuted):
+        permutation[word.index(c)] = i+1
+    # for i, c in enumerate(permuted):
+    #     permutation[i] = word.index(c) + 1
+    return permutation
+def get_word_permutations(n, m, index=4):
+    w, w_tilde = canonical_words(n, m)
+    phi, psi = commute(w, w_tilde, index)
+    seconds_phi, seconds_psi = [], []
+    for z1, z2, val in phi:
+        second = extract_subsequence(z1+z2, w_tilde)
+        second = tuple(map(str, get_permutation(w_tilde, second)))
+        seconds_phi.append((z1, z2, val, second))
+    for z1, z2, val in psi:
+        second = extract_subsequence(z1 + z2, w_tilde)
+        second = tuple(map(str, get_permutation(w_tilde, second)))
+        seconds_psi.append((z1, z2, val, second))
+    return seconds_phi, seconds_psi
+
+def print_formulas_with_permutation(n, m, index=4):
+    assert ALGEBRA == 'free' or ALGEBRA == 'commutative'
+    print(canonical_words(n, m))
+    phi, psi = get_word_permutations(n, m, index)
+    print("phi part")
+    pretty_print_with_permutation(phi)
+    print("psi part")
+    pretty_print_with_permutation(psi)
+
+def pretty_print_with_permutation(formula):
+    formula_list = []
+    for z1, z2, val, perm in formula:
+        formula_list.append([';'.join(z1), ';'.join(z2), val, ' '.join(perm)])
+    formula_list.sort(key=lambda item: (-item[2], item[0], item[1]))
+    print(tabulate(formula_list, headers=['w', 'w_tilde', 'coef', 'permutation']))
+
+def print_permutations(n, m):
+    seconds_phi, seconds_psi, total = get_word_permutations(n, m)
+    print(total)
+    print("Phi part")
+    for w, val in seconds_phi:
+        if val == 1:
+            print("+", ' '.join(w))
+        else:
+            print("-", ' '.join(w))
+    print("Psi part")
+    for w, val in seconds_psi:
+        if val == 1:
+            print("+", ' '.join(w))
+        else:
+            print("-", ' '.join(w))

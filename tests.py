@@ -2,9 +2,10 @@ from itertools import product, permutations
 from clean import commute, free_algebra_commute, substitute
 from clean_copy import commute as commute_copy, free_algebra_commute as free_algebra_commute_copy
 from misha import Formula_I, Formula_II, Formula_III, Formula_IV
-from clean import ALGEBRA as CLEAN_ALGEBRA, canonical_words, pretty_print
+from clean import ALGEBRA as CLEAN_ALGEBRA, canonical_words, pretty_print, project
 from clean_copy import ALGEBRA as COPY_ALGEBRA
 from collections import defaultdict
+from double_bracket import compute_first_psi_term_explicitly
 from itertools import chain
 def normal_form(formula):
     formula_list = []
@@ -147,4 +148,15 @@ def free_algebra_reduce_to_c_test(w, w_tilde):
             pretty_print(phi_c)
             return
 
+def test_explicit_psi(n, m):
+    phi, psi = free_algebra_commute(n, m, 1)
+    psi_explicit = compute_first_psi_term_explicitly(n, m)
+    psi_explicit.sort(key=lambda item: (-item[2], item[0], item[1]))
+    proj = []
+    for z1, z2, val in psi:
+        if len(z1) + len(z2) + 2 == n + m:
+            proj.append((z1, z2, val))
+    proj.sort(key=lambda item: (-item[2], item[0], item[1]))
+
+    assert proj == psi_explicit
 
