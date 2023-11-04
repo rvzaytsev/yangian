@@ -4,6 +4,9 @@ import double_bracket
 import clean
 import numpy as np
 import sympy
+from collections import defaultdict
+from tabulate import tabulate
+import tqdm
 
 def print_coefficients_free_algebra(n, m):
     print(f"words are of length {n} and {m}")
@@ -325,3 +328,145 @@ def compare_explicit_formula_psi_with_bracket(n, m):
     degs.sort()
     degs_other.sort()
     return degs, degs_other
+
+def get_glued_permutations(n, m):
+    w, w_tilde = clean.canonical_words(n, m)
+    phi, formula = clean.commute(w, w_tilde, 4)
+    letters = ''.join(w)
+    dict_form = defaultdict(int)
+    for z1, z2, val in formula:
+        new_z1 = []
+        for word in z1:
+            for l in letters:
+                word = word.replace(l, '')
+            new_z1.append(word)
+        new_z2 = []
+        for word in z2:
+            for l in letters:
+                word = word.replace(l, '')
+            new_z2.append(word)
+        new = tuple(new_z1), tuple(new_z2)
+        dict_form[new] += val
+    assert set(dict_form.values()) == {0}
+    keys = [(tuple(c for c in key[0] if c != ''),
+                    tuple(c for c in key[1] if c != '')) for key in dict_form.keys()]
+    keys = sorted(list(set(keys)))
+    groups = defaultdict(list)
+    for z1, z2 in keys:
+        z2_sorted = tuple(sorted(list(z2)))
+        groups[(z1, z2_sorted)].append((z1, z2))
+    groups = list(groups.values())
+    groups.sort(key=lambda group: (-len(group[0][0]) - len(group[0][1]), sorted(group[0][0] + group[0][1])))
+    groups = [[(';'.join(v[0]), ';'.join(v[1])) for v in group] for group in groups]
+    grps = []
+    for group in groups:
+        grps.append(tabulate(sorted(group), headers=['w', 'w_tilde']))
+    return grps
+
+def phi_contained_in_first(n):
+    t = double_bracket.canonical_tensor(n, 1)
+    letter = clean.ALPHABET[n]
+    s = double_bracket.double_bracket(t)
+    phis = []
+    for a, b, val in s:
+        phi, psi = clean.commute(a, b, 1)
+        #clean.pretty_print(phi)
+        phis.append(clean.multiply(phi, val))
+    #print("FINAL")
+    phi = clean.add(*phis)
+    double_bracket.print_tensor(s)
+    for a, b, val in phi:
+        assert letter in ''.join(b)
+    #clean.pretty_print(phi)
+
+def phi_bar(n, m, index=1):
+    t = double_bracket.canonical_tensor(n, m)
+    s = double_bracket.double_bracket(t)
+    double_bracket.print_tensor(s, sort=False)
+    phis = []
+    for a, b, val in s:
+        phi, psi = clean.commute(a, b, index)
+        print(a, b)
+        clean.pretty_print(phi)
+        phis.append(clean.multiply(phi, val))
+    print("FINAL")
+    phi = clean.add(*phis)
+    clean.pretty_print(phi)
+
+
+# we will work with linear combinations, so let's implement such thing
+def term_to_linear_combination(w):
+    return [(w, 1)]
+
+def partitions(n, I=1):
+    yield (n,)
+    for i in range(I, n//2 + 1):
+        for p in partitions(n-i, i):
+            yield (i,) + p
+def compositions(n):
+    for p in partitions(n):
+        for q in set(permutations(p)):
+            yield q
+
+def split_word(w, nu):
+    assert ALGEBRA != 'C^N'
+    idx = 0
+    x = []
+    for k in nu:
+        m = ''
+        for letter in w[idx:idx+k]:
+            m = double_bracket.multiply(m, letter)
+        x.append(m)
+        idx += k
+    return tuple(x)
+def shift(w, c):
+    # here c corresponds to -c from paper
+    length = len(w)
+    if length == 0:
+        return [(tuple(), 1)] #empty word - nothing happens to it
+    result = []
+    for nu in compositions(length):
+        x = split_word(w, nu)
+        result.append((x, c**(length - len(nu))))
+    return result
+
+def shift_quadratic(quadratic, c):
+    result = []
+    for x1, x2, val in quadratic:
+        first = shift(x1, c)
+        second = shift(x2, c)
+        for y1, v1 in first:
+            for y2, v2 in second:
+                result.append((y1, y2, v1*v2*val))
+    return clean.add(result)
+
+def commute_shifted(w, w_tilde, c):
+    # first shift, then commute
+    first = shift(w, c)
+    second = shift(w_tilde, c)
+    phis = []
+    psis = []
+    for (x1, v1) in first:
+        for (x2, v2) in second:
+            phi, psi = commute(x1, x2, 4)
+            phi = clean.multiply(phi, v1*v2)
+            psi = clean.multiply(psi, v1*v2)
+            phis.append(phi)
+            psis.append(psi)
+    return sorted(clean.add(*phis)), sorted(clean.add(*psis))
+
+def shift_commuted(w, w_tilde, c):
+    # first commute, then shift
+    phi, psi = commute(w, w_tilde, 4)
+    return sorted(shift_quadratic(phi, c)), sorted(shift_quadratic(psi, c))
+
+def is_shift_automorphism(n, m, k):
+    for u in range(1, m+1):
+        for v in range(1,n+1):
+            print(u, v)
+            for l in range(-k, k+1):
+                w, w_tilde = clean.canonical_words(u, v)
+                phi_cs, psi_cs = commute_shifted(w, w_tilde, l)
+                phi_sc, psi_sc = shift_commuted(w, w_tilde, l)
+                assert phi_cs == phi_sc
+                assert psi_cs == psi_sc

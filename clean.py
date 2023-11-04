@@ -7,10 +7,11 @@ EMPTY = tuple()
 
 # These are technical parameters which set up the context
 FAST = True
-ALGEBRA = 'commutative'  # C^N or free or commutative
+ALGEBRA = 'free'#'commutative'  # C^N or free or commutative
 CACHE = {} # for free algebra it is very easy: we store the map (n, m, i) -> formula_i([1,2,...,n], [n+1,...,n+1+m])
 ALPHABET = string.printable
 # arithmetic
+
 
 # negates the coefficients
 def negate(formulas):
@@ -271,7 +272,6 @@ def commute(w, w_tilde, index):
     psi3_new = prepend(psi3, w_begin)
 
     return convert(phi3_new, psi3_new, phi4_new, psi4_new, index)
-
 def canonical_words(n, m):
     w = tuple(c for c in ALPHABET[:n])
     w_tilde = tuple(c for c in ALPHABET[n:n+m])
@@ -423,11 +423,18 @@ def print_formulas_with_permutation(n, m, index=4):
 
 def pretty_print_with_permutation(formula):
     formula_list = []
+    perm_pos = []
+    perm_neg = []
     for z1, z2, val, perm in formula:
+        if val > 0:
+            perm_pos.append(perm)
+        else:
+            perm_neg.append(perm)
+
         formula_list.append([';'.join(z1), ';'.join(z2), val, ' '.join(perm)])
     formula_list.sort(key=lambda item: (-item[2], item[0], item[1]))
     print(tabulate(formula_list, headers=['w', 'w_tilde', 'coef', 'permutation']))
-
+    assert sorted(perm_pos) == sorted(perm_neg)
 def print_permutations(n, m):
     seconds_phi, seconds_psi, total = get_word_permutations(n, m)
     print(total)

@@ -12,10 +12,13 @@ def multiply(a, b):
     elif ALGEBRA == 'commutative':
         return ''.join(sorted(a + b))
     elif ALGEBRA == 'C^N':
+        if a == '':
+            return b
+        if b == '':
+            return a
         if a == b:
             return a
-        else:
-            return 0
+        return 0
     else:
         raise Exception(f"Algebra {ALGEBRA} not implemented. Choose C^N or free or commutative")
 
@@ -167,9 +170,10 @@ def compute_brackets_and_all_projections(n, m):
     return brackets
 
 
-def print_tensor(t):
+def print_tensor(t, sort=True):
     string_form = [(';'.join(a), ';'.join(b), val) for a, b, val in t]
-    string_form.sort(key=lambda item: (-item[2], item[0], item[1]))
+    if sort:
+        string_form.sort(key=lambda item: (-item[2], item[0], item[1]))
     print(tabulate(string_form, headers=['T(A)', 'T(A)', 'coef']))
 
 
